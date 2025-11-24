@@ -100,8 +100,8 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
     COMBO_X(CB_SETTINGS, MO(_SETTINGS), LCTL_T(KC_TAB), LT(_FUNC, KC_LNG1)) \
     \
     /* THUMB */\
-    COMBO_X(CB_L_THUMB,  KC_L_THM,      LT(_SYM, KC_SPC), LCTL_T(KC_TAB)) \
-    COMBO_X(CB_R_THUMB,  KC_R_THM,      LT(_FUNC, KC_LNG1), LT(_NAV, KC_BSPC)) \
+    /* COMBO_X(CB_L_THUMB,  KC_L_THM,      LT(_SYM, KC_SPC), LCTL_T(KC_TAB)) \ */\
+    /* COMBO_X(CB_R_THUMB,  KC_R_THM,      LT(_FUNC, KC_LNG1), LT(_NAV, KC_BSPC)) \ */\
     \
     /* BOOTLOADER */\
     COMBO_X(CB_BOOT_L,   QK_BOOT,       KC_Q, KC_A, LSFT_T(KC_Z)) \
