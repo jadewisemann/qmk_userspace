@@ -1,4 +1,4 @@
-name: [TEST] Fastest Build (Docker + Shallow)
+name: (TEST) Fastest Build (Docker + Shallow)
 
 on:
   workflow_dispatch:
