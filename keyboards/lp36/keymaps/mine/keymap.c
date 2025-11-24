@@ -29,6 +29,14 @@ enum custom_keycodes {
     SMART_VSC_M_U  // Up
 };
 
+// **  CHORDAL HOLD HAND DEFINE ** //
+const char chordal_hold_layout[MATRIX_ROWS][MATRIX_COLS] PROGMEM = LAYOUT(
+    'L', 'L', 'L', 'L', 'L',    'R', 'R', 'R', 'R', 'R',
+    'L', 'L', 'L', 'L', 'L',    'R', 'R', 'R', 'R', 'R',
+    'L', 'L', 'L', 'L', 'L',    'R', 'R', 'R', 'R', 'R',
+    '*', '*', '*',                        '*', '*', '*'
+);
+
 // **  KEYMAP ** //
 #define KC_L_THM LGUI_T(KC_ESC) 
 #define KC_R_THM KC_DEL 

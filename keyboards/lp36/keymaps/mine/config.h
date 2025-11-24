@@ -25,3 +25,5 @@
 
 #undef COMBO_TERM
 #define COMBO_TERM 25
+
+#define CHORDAL_HOLD
