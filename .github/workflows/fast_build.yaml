@@ -1,0 +1,98 @@
+name: [TEST] Fast Build QMK
+
+on:
+  workflow_dispatch:
+  # push:
+  #   paths:
+  #     - '*.json'
+  #     - 'config.h'
+  #     - 'rules.mk'
+  #     - 'source.c'
+
+
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    # [최적화 1] Docker 컨테이너 제거 (속도 향상 핵심)
+    # container: ghcr.io/qmk/qmk_cli  <-- 이 줄을 삭제함
+
+    strategy:
+      fail-fast: false
+      matrix:
+        # [설정] 여기에 빌드할 JSON 파일 이름들을 적으세요
+        file:
+        - username.json
+        # - other_layout.json
+
+    steps:
+    # 1. QMK 펌웨어 원본 가져오기 (Shallow Clone으로 속도 향상)
+    - name: Checkout QMK Firmware
+      uses: actions/checkout@v4
+      with:
+        repository: jadewisemann/qmk_firmware # 본인이 사용하는 QMK 포크가 있다면 수정, 없으면 qmk/qmk_firmware
+        path: qmk_firmware
+        submodules: recursive
+        fetch-depth: 1 # [최적화 2] 최신 커밋만 가져옴
+
+    # 2. 내 코드를 QMK의 users/ 폴더 안으로 가져오기 (공식 문서 방식 유지)
+    - name: Checkout Userspace
+      uses: actions/checkout@v4
+      with:
+        path: qmk_firmware/users/${{ github.actor }}
+
+    # 3. 파이썬 환경 설정 및 캐싱
+    - name: Setup Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.10' # QMK 호환 버전
+
+    - name: Cache Python Dependencies
+      uses: actions/cache@v3
+      with:
+        path: ~/.cache/pip
+        # requirements.txt가 바뀌지 않으면 캐시된 걸 사용
+        key: ${{ runner.os }}-pip-${{ hashFiles('qmk_firmware/requirements.txt') }}
+        restore-keys: |
+          ${{ runner.os }}-pip-
+
+    # 4. QMK 의존성 설치 (Docker 대신 직접 설치)
+    - name: Install Dependencies
+      run: |
+        python3 -m pip install --upgrade pip
+        pip3 install qmk
+        
+        cd qmk_firmware
+        # QMK 필수 라이브러리 설치
+        pip3 install -r requirements.txt
+
+    # 5. 빌드 수행 (공식 문서 명령어와 동일 구조)
+    - name: Build Firmware
+      working-directory: qmk_firmware
+      run: |
+        # qmk compile "users/아이디/파일.json"
+        qmk compile "users/${{ github.actor }}/${{ matrix.file }}"
+        
+        # 결과물 정리 (아티팩트 업로드를 위해 한곳으로 모음)
+        mkdir ../build_output
+        cp *.hex ../build_output/ 2>/dev/null || true
+        cp *.bin ../build_output/ 2>/dev/null || true
+        cp *.uf2 ../build_output/ 2>/dev/null || true
+
+    # 6. 한국 시간 태그 생성
+    - name: Generate KST Date Tag
+      id: tag
+      run: |
+        export TZ='Asia/Seoul'
+        echo "release_tag=$(date +'%Y%m%d_%H%M%S')" >> $GITHUB_OUTPUT
+        echo "release_date=$(date +'%Y-%m-%d %H:%M')" >> $GITHUB_OUTPUT
+
+    # 7. 릴리즈 업로드 (버저닝 + 개별 파일)
+    - name: Create Release and Upload
+      uses: softprops/action-gh-release@v1
+      with:
+        tag_name: ${{ steps.tag.outputs.release_tag }}_${{ matrix.file }} # 파일별 구분을 위해 태그에 파일명 추가 가능
+        name: Build ${{ steps.tag.outputs.release_date }} - ${{ matrix.file }}
+        files: build_output/*
+        draft: false
+        prerelease: false
