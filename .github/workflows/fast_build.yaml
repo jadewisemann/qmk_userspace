@@ -52,7 +52,7 @@ jobs:
         # mass-compile 대신 제공해주신 문서에 있는 전용 명령어를 사용합니다.
         # -j $(nproc) 옵션으로 병렬 처리하여 속도를 높입니다.
         echo "Compiling targets defined in userspace/qmk.json..."
-        qmk userspace-compile -j $(nproc)
+        qmk userspace-compile $(nproc)
 
         # (4) 결과물 이동
         mkdir ../firmware_outputs
