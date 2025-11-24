@@ -1,4 +1,4 @@
-name: [TEST] Fast Build QMK
+name: (TEST) Fast Build QMK
 
 on:
   workflow_dispatch:
