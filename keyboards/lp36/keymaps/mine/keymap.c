@@ -159,6 +159,21 @@ combo_t key_combos[] = {
 };
 // == END (MACRO_ENGINE) == //
 
+
+// ** PER-KEY PERMISSIVE HOLD ** //
+bool get_permissive_hold(uint16_t keycode, keyrecord_t *record) {
+    switch (keycode) {
+        case LCTL_T(KC_TAB):
+            if (timer_elapsed(record->event.time) > 100) {
+                return true; 
+            }
+            return false;
+
+        default:
+            return false; 
+    }
+}
+
 // **  MACRO & LOGICS ** //
 bool process_record_user(uint16_t keycode, keyrecord_t *record) {
     if (record->event.pressed) {
