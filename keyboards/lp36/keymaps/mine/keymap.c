@@ -37,6 +37,30 @@ const char chordal_hold_layout[MATRIX_ROWS][MATRIX_COLS] PROGMEM = LAYOUT(
     '*', '*', '*',                        '*', '*', '*'
 );
 
+#define CHORDAL_TERM 70
+
+bool get_chordal_hold(
+    uint16_t tap_hold_keycode, 
+    keyrecord_t* tap_hold_record,
+    uint16_t other_keycode,
+    keyrecord_t* other_record
+) {
+    // 1. 첫 번째 키(Mod-Tap)가 눌린 후 얼마나 지났는지 확인
+    // (other_record->event.time - tap_hold_record->event.time 과 같은 의미)
+    uint16_t elapsed = TIMER_DIFF_16(other_record->event.time, tap_hold_record->event.time);
+
+    // 2. "아슬아슬하게(매우 빠르게)" 눌렸을 때만 엄격하게 검사
+    if (elapsed < CHORDAL_TERM) {
+        // [엄격 모드]
+        // 반대 손 규칙을 따름 (같은 손이면 Tap, 다른 손이면 Hold)
+        return get_chordal_hold_default(tap_hold_record, other_record);
+    }
+
+    // 3. 시간이 충분히 지났다면? (여유 있는 입력)
+    // [관대 모드]
+    // 손 위치 상관없이 무조건 Hold(쉬프트 등)로 인정
+    return true;
+}
 // **  KEYMAP ** //
 #define KC_L_THM LGUI_T(KC_ESC) 
 #define KC_R_THM KC_DEL 
