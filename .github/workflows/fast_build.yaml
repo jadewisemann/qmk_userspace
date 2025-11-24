@@ -68,11 +68,11 @@ jobs:
 
     # 5. 빌드 수행 (공식 문서 명령어와 동일 구조)
     - name: Build Firmware
-      working-directory: qmk_firmware
+      working-directory: qmk_userspace
       run: |
         # qmk compile "users/아이디/파일.json"
-        qmk compile "users/${{ github.actor }}/${{ matrix.file }}"
-        
+        # qmk compile "users/${{ github.actor }}/${{ matrix.file }}"
+        qmk userspace-compile
         # 결과물 정리 (아티팩트 업로드를 위해 한곳으로 모음)
         mkdir ../build_output
         cp *.hex ../build_output/ 2>/dev/null || true
