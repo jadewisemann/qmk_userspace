@@ -34,39 +34,39 @@ jobs:
           ${{ runner.os }}-pip-
 
     # 4. 환경 설정 및 Userspace 빌드 (Fail-safe 버전)
-      - name: Setup QMK & Userspace Compile
-        run: |
-          # (1) QMK 및 의존성 설치
-          python3 -m pip install --upgrade pip
-          pip3 install qmk
-          pip3 install -r qmk_firmware/requirements.txt
-          
-          # (2) Userspace 경로 설정
-          cd qmk_firmware
-          export QMK_HOME=$(pwd)
-          qmk config user.overlay_dir=$GITHUB_WORKSPACE/userspace
+    - name: Setup QMK & Userspace Compile
+      run: |
+        # (1) QMK 및 의존성 설치
+        python3 -m pip install --upgrade pip
+        pip3 install qmk
+        pip3 install -r qmk_firmware/requirements.txt
+        
+        # (2) Userspace 경로 설정
+        cd qmk_firmware
+        export QMK_HOME=$(pwd)
+        qmk config user.overlay_dir=$GITHUB_WORKSPACE/userspace
 
-          # (3) Userspace 전용 빌드 실행
-          echo "Compiling targets defined in userspace/qmk.json..."
-          # [중요] || echo "..." 를 붙여서, 컴파일러가 1을 반환해도 스크립트가 죽지 않게 방어합니다.
-          qmk userspace-compile -j $(nproc) || echo "⚠️ Compliation finished with non-zero exit code (but likely successful)"
+        # (3) Userspace 전용 빌드 실행
+        echo "Compiling targets defined in userspace/qmk.json..."
+        # [중요] || echo "..." 를 붙여서, 컴파일러가 1을 반환해도 스크립트가 죽지 않게 방어합니다.
+        qmk userspace-compile -j $(nproc) || echo "⚠️ Compliation finished with non-zero exit code (but likely successful)"
 
-          # (4) 결과물 이동 (더 단순하고 강력한 방식)
-          echo "Moving firmware files..."
-          mkdir -p ../firmware_outputs
-          
-          # 빌드 결과물은 보통 루트나 .build 폴더에 생깁니다. 양쪽 다 뒤져서 복사합니다.
-          # || true를 붙여서 파일이 없어도 에러가 나지 않게 합니다.
-          cp *.hex ../firmware_outputs/ 2>/dev/null || true
-          cp *.bin ../firmware_outputs/ 2>/dev/null || true
-          cp *.uf2 ../firmware_outputs/ 2>/dev/null || true
-          cp .build/*.hex ../firmware_outputs/ 2>/dev/null || true
-          cp .build/*.bin ../firmware_outputs/ 2>/dev/null || true
-          cp .build/*.uf2 ../firmware_outputs/ 2>/dev/null || true
+        # (4) 결과물 이동 (더 단순하고 강력한 방식)
+        echo "Moving firmware files..."
+        mkdir -p ../firmware_outputs
+        
+        # 빌드 결과물은 보통 루트나 .build 폴더에 생깁니다. 양쪽 다 뒤져서 복사합니다.
+        # || true를 붙여서 파일이 없어도 에러가 나지 않게 합니다.
+        cp *.hex ../firmware_outputs/ 2>/dev/null || true
+        cp *.bin ../firmware_outputs/ 2>/dev/null || true
+        cp *.uf2 ../firmware_outputs/ 2>/dev/null || true
+        cp .build/*.hex ../firmware_outputs/ 2>/dev/null || true
+        cp .build/*.bin ../firmware_outputs/ 2>/dev/null || true
+        cp .build/*.uf2 ../firmware_outputs/ 2>/dev/null || true
 
-          # (5) 파일 확인 (디버깅용 로그)
-          echo "✅ Check copied files:"
-          ls -l ../firmware_outputs/
+        # (5) 파일 확인 (디버깅용 로그)
+        echo "✅ Check copied files:"
+        ls -l ../firmware_outputs/
           
     # 5. 한국 시간 태그
     - name: Generate KST Date Tag
