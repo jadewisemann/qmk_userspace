@@ -37,7 +37,7 @@ const char chordal_hold_layout[MATRIX_ROWS][MATRIX_COLS] PROGMEM = LAYOUT(
     '*', '*', '*',                        '*', '*', '*'
 );
 
-#define CHORDAL_TERM 70
+#define CHORDAL_TERM 35
 
 bool get_chordal_hold(
     uint16_t tap_hold_keycode, 
