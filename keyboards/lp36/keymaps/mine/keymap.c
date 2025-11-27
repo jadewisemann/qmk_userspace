@@ -182,11 +182,11 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
         case MAC_LANG: 
         if(record->event.pressed) {
             tap_code16(LCTL(KC_SPC));
-            return false
+            return false;
         }
         return true;
     }
-    
+
     if (record->event.pressed) {
         switch (keycode) {
             case OS_TOGGLE:
