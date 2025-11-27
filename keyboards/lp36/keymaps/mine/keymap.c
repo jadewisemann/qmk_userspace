@@ -120,10 +120,46 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
         _______, _______, _______, _______, _______, _______, _______, _______, _______, _______,
         _______, _______, _______, _______, _______, _______, _______, _______, _______, _______,
         _______, _______, _______, _______, _______, _______, _______, _______, _______, _______,
-        _______, _______, LGUI_T(KC_TAB), LT(_FUNC, MAC_LANG), _______, _______ 
+        _______, _______, LGUI_T(KC_TAB), TD(TD_LANG_FUNC), _______, _______ 
     ),
 };
 
+
+// **  TAP DANCE ** //
+// [선언부] enum이나 상단에 추가
+enum {
+    TD_LANG_FUNC = 0, // 탭댄스 ID
+};
+
+// [동작 정의] 
+// 1. 탭(Tap) 했을 때: Ctrl + Space 입력
+void dance_lang_finished(qk_tap_dance_state_t *state, void *user_data) {
+    if (state->count == 1) {
+        // 짧게 눌렀을 때 (Tap)
+        if (!state->pressed) { 
+            tap_code16(LCTL(KC_SPC)); 
+        } 
+        // 길게 눌렀을 때 (Hold)
+        else {
+            layer_on(_FUNC);
+        }
+    } 
+    // (선택사항) 더블탭 등 추가 로직 가능
+}
+
+// 2. 뗐을 때(Reset): 레이어 끄기
+void dance_lang_reset(qk_tap_dance_state_t *state, void *user_data) {
+    if (state->count == 1) {
+        // Hold 상태였다면 레이어를 끕니다.
+        layer_off(_FUNC);
+    }
+}
+
+// [등록] 탭댄스 액션 등록
+qk_tap_dance_action_t tap_dance_actions[] = {
+    // FN_ON_EACH_TAP 대신 FN_ADVANCED를 써야 Hold/Tap 구분이 가능합니다.
+    [TD_LANG_FUNC] = ACTION_TAP_DANCE_FN_ADVANCED(NULL, dance_lang_finished, dance_lang_reset)
+};
 
 // **  COMBO ** //
 // COMBO_X(COMBO_NAME, OUTPUT_KEY, INPUT_KEY_1, INPUT_KEY_2, ...)
@@ -178,19 +214,10 @@ bool get_permissive_hold(uint16_t keycode, keyrecord_t *record) {
 
 // **  MACRO & LOGICS & SNATCH ** //
 bool process_record_user(uint16_t keycode, keyrecord_t *record) {
-    switch (keycode) {
-        case MAC_LANG: 
-        if(record->event.pressed) {
-            tap_code16(LCTL(KC_SPC));
-            return false;
-        }
-        return true;
-    }
-
     if (record->event.pressed) {
         switch (keycode) {
             case OS_TOGGLE:
-                is_mac_mode = !is_mac_mode;
+                is_mac_mode = !is_mac_mode; 
                 if (is_mac_mode) {
                     layer_on(_MAC_OVERLAY);
                 } else {
