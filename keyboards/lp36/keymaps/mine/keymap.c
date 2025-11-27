@@ -29,11 +29,6 @@ enum custom_keycodes {
     SMART_VSC_M_U  // Up
 };
 
-// ** TAP DANCE ENUM (추가됨) ** //
-enum {
-    TD_LANG_FUNC = 0,
-};
-
 // ** CHORDAL HOLD HAND DEFINE ** //
 const char chordal_hold_layout[MATRIX_ROWS][MATRIX_COLS] PROGMEM = LAYOUT(
     'L', 'L', 'L', 'L', 'L',    'R', 'R', 'R', 'R', 'R',
@@ -61,7 +56,6 @@ bool get_chordal_hold(
 // ** KEYMAP ** //
 #define KC_L_THM LGUI_T(KC_ESC) 
 #define KC_R_THM KC_DEL
-#define MAC_LANG KC_F24
 
 const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
     /* #0: BASE (Windows Default) */
@@ -69,8 +63,8 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
         KC_Q,         KC_W,         KC_E,        KC_R,        KC_T,   KC_Y,        KC_U,        KC_I,        KC_O,        KC_SLSH,
         KC_A,         KC_S,         KC_D,        KC_F,        KC_G,   KC_H,        KC_J,        KC_K,        KC_L,        KC_P,
         LSFT_T(KC_Z), LALT_T(KC_X), KC_C,        KC_V,        KC_B,   KC_B,        KC_N,        KC_M,        RALT_T(KC_COMM), RSFT_T(KC_DOT),
-        // ▼ 여기 TD(TD_LANG_FUNC)로 변경됨!
-        KC_L_THM,     LT(_SYM, KC_SPC), LCTL_T(KC_TAB), TD(TD_LANG_FUNC), LT(_NAV, KC_BSPC),  KC_R_THM
+        // [수정] 기본은 한영키(LNG1)로 복구
+        KC_L_THM,     LT(_SYM, KC_SPC), LCTL_T(KC_TAB), LT(_FUNC, KC_LNG1), LT(_NAV, KC_BSPC),  KC_R_THM
     ),
 
     /* #1: SYMBOL */
@@ -118,53 +112,22 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
         _______, _______, _______, _______, _______, _______, _______, _______, _______, _______,
         _______, _______, _______, _______, _______, _______, _______, _______, _______, _______,
         _______, _______, _______, _______, _______, _______, _______, _______, _______, _______,
+        // [수정] 맥 모드일 때만 여기서 KC_CAPS가 나감 (Base의 LNG1을 덮어씀)
         _______, _______, LGUI_T(KC_TAB), LT(_FUNC, KC_CAPS), _______, _______ 
     ),
 };
 
 
-// ** TAP DANCE LOGIC (구현됨) ** //
-// 1. 탭/홀드 동작 정의
-void dance_lang_finished(qk_tap_dance_state_t *state, void *user_data) {
-    if (state->count == 1) {
-        if (!state->pressed) { 
-            // 짧게 눌렀을 때: Ctrl + Space (한영전환)
-            tap_code16(LCTL(KC_SPC)); 
-        } else {
-            // 길게 눌렀을 때: _FUNC 레이어 켜기
-            layer_on(_FUNC);
-        }
-    } 
-}
-
-// 2. 키 뗐을 때 리셋 정의
-void dance_lang_reset(qk_tap_dance_state_t *state, void *user_data) {
-    if (state->count == 1) {
-        // 레이어 끄기
-        layer_off(_FUNC);
-    }
-}
-
-// 3. 액션 등록
-qk_tap_dance_action_t tap_dance_actions[] = {
-    [TD_LANG_FUNC] = ACTION_TAP_DANCE_FN_ADVANCED(NULL, dance_lang_finished, dance_lang_reset)
-};
-
-
-// ** COMBO (에러 수정됨: #define 추가) ** //
-// COMBO_X(COMBO_NAME, OUTPUT_KEY, INPUT_KEY_1, INPUT_KEY_2, ...)
+// ** COMBO ** //
 #define COMBO_LIST \
     COMBO_X(CB_ENTER,    KC_ENT,        KC_K, KC_L) \
     COMBO_X(CB_ESC,      KC_ESC,        KC_W, KC_E) \
     COMBO_X(CB_CAPSWORD, CW_TOGG,       LSFT_T(KC_Z), RSFT_T(KC_DOT)) \
-    COMBO_X(CB_SETTINGS, MO(_SETTINGS), LCTL_T(KC_TAB), TD(TD_LANG_FUNC)) \
+    /* [수정] 콤보 입력키를 Base 레이어 기준인 KC_LNG1으로 맞춤 */ \
+    COMBO_X(CB_SETTINGS, MO(_SETTINGS), LCTL_T(KC_TAB), LT(_FUNC, KC_LNG1)) \
     COMBO_X(CB_BOOT_L,   QK_BOOT,       KC_Q, KC_A, LSFT_T(KC_Z)) \
     COMBO_X(CB_BOOT_R,   QK_BOOT,       KC_SLSH, KC_P, RSFT_T(KC_DOT)) \
     COMBO_X(CB_MAC_TOG,  OS_TOGGLE,     KC_Q, KC_W, KC_E)
-
-// 주의: 위 콤보 리스트에서 TD(TD_LANG_FUNC)를 콤보 입력키로 사용하면 
-// 타이밍 이슈가 생길 수 있습니다. (보통은 단순 키코드를 권장합니다)
-// 일단 기존 코드 살려서 TD(TD_LANG_FUNC)로 바꿔두었습니다.
 
 // MACRO_ENGINE
 enum combos {
@@ -192,7 +155,7 @@ bool get_permissive_hold(uint16_t keycode, keyrecord_t *record) {
                 return true; 
             }
             return false;
-        // TD는 permissive hold 설정이 따로 필요 없습니다 (FN_ADVANCED에서 처리됨)
+
         default:
             return false; 
     }
