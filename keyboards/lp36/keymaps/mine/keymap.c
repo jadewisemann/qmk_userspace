@@ -63,7 +63,9 @@ bool get_chordal_hold(
 }
 // **  KEYMAP ** //
 #define KC_L_THM LGUI_T(KC_ESC) 
-#define KC_R_THM KC_DEL 
+#define KC_R_THM KC_DEL
+#define MAC_LANG KC_F24
+
 const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
     /* #0: BASE (Windows Default) */
     [_BASE] = LAYOUT(
@@ -118,7 +120,7 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
         _______, _______, _______, _______, _______, _______, _______, _______, _______, _______,
         _______, _______, _______, _______, _______, _______, _______, _______, _______, _______,
         _______, _______, _______, _______, _______, _______, _______, _______, _______, _______,
-        _______, _______, LGUI_T(KC_TAB), LT(_FUNC, KC_SPC), _______, _______ 
+        _______, _______, LGUI_T(KC_TAB), LT(_FUNC, MAC_LANG), _______, _______ 
     ),
 };
 
@@ -174,8 +176,17 @@ bool get_permissive_hold(uint16_t keycode, keyrecord_t *record) {
     }
 }
 
-// **  MACRO & LOGICS ** //
+// **  MACRO & LOGICS & SNATCH ** //
 bool process_record_user(uint16_t keycode, keyrecord_t *record) {
+    switch (keycode) {
+        case MAC_LANG: 
+        if(record->event.pressed) {
+            tap_code16(LCTL(KC_SPC));
+            return false
+        }
+        return true;
+    }
+    
     if (record->event.pressed) {
         switch (keycode) {
             case OS_TOGGLE:
