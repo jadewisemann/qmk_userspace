@@ -1,4 +1,4 @@
-name: Build QMK firmware
+name: Build QMK firmware(wo QMK dependency)
 
 on: 
   push:
@@ -12,42 +12,69 @@ permissions:
 jobs:
   build:
     name: 'QMK Userspace Build'
-    uses: qmk/.github/.github/workflows/qmk_userspace_build.yml@main
-    with:
-      # qmk_repo: qmk/qmk_firmware
-      qmk_repo: jadewisemann/qmk_firmware
-      qmk_ref: master
+    runs-on: ubuntu-22.04
+    
+    steps:
+      - name: Checkout Userspace
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Install QMK CLI
+        # 22.04에서는 pip 제한이 없으므로 플래그 없이 깔끔하게 설치됩니다.
+        run: |
+          python3 -m pip install --upgrade qmk
+
+      - name: Setup QMK Firmware
+        run: |
+          qmk setup -y -b master jadewisemann/qmk_firmware
+
+      - name: Compile Firmware
+        run: qmk compile
+
+      - name: Move Firmware Files
+        run: |
+          mkdir -p firmware_outputs
+          mv *.hex firmware_outputs/ 2>/dev/null || true
+          mv *.bin firmware_outputs/ 2>/dev/null || true
+          mv *.uf2 firmware_outputs/ 2>/dev/null || true
+          mv *.json firmware_outputs/ 2>/dev/null || true
+
+      - name: Upload Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: firmware_outputs
+          path: firmware_outputs/
 
   release_history:
     name: 'Create Versioned Release'
     runs-on: ubuntu-latest
     needs: build
-    if: always() && !cancelled()
+    if: always() && !cancelled() && needs.build.result == 'success'
     
     steps:
       - name: Download Artifacts
         uses: actions/download-artifact@v4
         with:
+          name: firmware_outputs
           path: firmware_outputs
-          merge-multiple: true
 
       - name: Generate Date Tag
         id: tag
         run: |
           export TZ='Asia/Seoul'
-
           echo "release_tag=$(date +'%Y%m%d_%H%M%S')" >> $GITHUB_OUTPUT
           echo "release_date=$(date +'%Y-%m-%d %H:%M')" >> $GITHUB_OUTPUT
 
       - name: Create Release and Upload
         uses: softprops/action-gh-release@v1
         with:
-          tag_name: ${{ steps.tag.outputs.release_tag }}  # 태그: 20231125_123045
-          name: Build ${{ steps.tag.outputs.release_date }} # 제목: Build 2023-11-25 12:30
+          tag_name: ${{ steps.tag.outputs.release_tag }}
+          name: Build ${{ steps.tag.outputs.release_date }}
           draft: false
           prerelease: false
           files: |
-            firmware_outputs/**/*.hex
-            firmware_outputs/**/*.bin
-            firmware_outputs/**/*.uf2
-            firmware_outputs/**/*.json
+            firmware_outputs/*.hex
+            firmware_outputs/*.bin
+            firmware_outputs/*.uf2
+            firmware_outputs/*.json
