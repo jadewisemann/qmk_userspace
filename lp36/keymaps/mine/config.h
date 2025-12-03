@@ -1,0 +1,22 @@
+#pragma once
+
+#undef TAPPING_TERM
+#define TAPPING_TERM 135
+
+#define FLOW_TAP_TERM 30
+
+#define PERMISSIVE_HOLD
+
+#define TAP_CODE_DELAY 10
+
+// #define HOLD_ON_OTHER_KEY_PRESS
+
+#define QUICK_TAP_TERM 0
+
+#undef COMBO_TERM
+#define COMBO_TERM 25
+
+#define CHORDAL_HOLD
+
+
+#define USB_POLLING_INTERVAL_MS 1
